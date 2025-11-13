@@ -9,12 +9,13 @@ __global__ void seed_init(curandState_t *state);
 
 __global__ void fixed_point_quantize_kernel_stochastic(
     float *__restrict__ a, float *__restrict__ r, float *o, int size, int sigma,
-    bool clamp, float t_min, float t_max);
+    bool clamp, float t_min, float t_max, int *s_array, int n);
 
 __global__ void fixed_point_quantize_kernel_nearest(float *__restrict__ a,
                                                     float *o, int size,
                                                     int sigma, bool clamp,
-                                                    float t_min, float t_max);
+                                                    float t_min, float t_max,
+                                                    int *s_array, int n);
 
 __global__ void fixed_point_quantize_kernel_mask_stochastic(
     float *__restrict__ a, float *__restrict__ r, float *o, uint8_t *mask,

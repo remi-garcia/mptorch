@@ -1,3 +1,6 @@
+import torch
+from torch import Tensor
+
 __all__ = [
     "Number",
     "FloatType",
@@ -86,11 +89,12 @@ class FixedPoint(Number):
         fl: fractional length of each fixed point number
         clamp: whether to clamp unrepresentable numbers
         symmetric: whether to make the representable range symmetric
+        subset_fxp: subset of possible fxp numbers within the format
     """
 
-    def __init__(self, wl: int, fl: int, clamp: bool = True, symmetric: bool = False):
+    def __init__(self, wl: int, fl: int, clamp: bool = True, symmetric: bool = False, subset_fxp: Tensor|None = None):
         assert wl > 0, "invalid bits for word length: {}".format(wl)
-        assert fl > 0, "invalid bits for fractional length: {}".format(fl)
+        #assert fl >= 0, "invalid bits for fractional length: {}".format(fl)
         assert type(symmetric) == bool, "invalid type for clamping choice: {}".format(
             type(clamp)
         )
@@ -101,6 +105,12 @@ class FixedPoint(Number):
         self.fl = fl
         self.clamp = clamp
         self.symmetric = symmetric
+        self.subset_fxp = torch.empty(0)
+        if (subset_fxp != None):
+            if subset_fxp.numel() > 0:
+                assert int(torch.abs(subset_fxp).max().item()) <= pow(2, wl-1), "invalid number in the subset of possible fxp: {}".format(subset_fxp)
+                assert int(subset_fxp.max().item()) <= pow(2, wl-1) - 1, "invalid number in the subset of possible fxp: {}".format(subset_fxp)
+                self.subset_fxp = subset_fxp.sort().values
 
     def __str__(self):
         """Print format information in a string format."""

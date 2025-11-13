@@ -154,11 +154,18 @@ fixed_point_quantize_nearest_mask(Tensor a, int wl, int fl, bool symmetric)
 
 Tensor fixed_point_quantize_stochastic(Tensor a,
                                        int wl, int fl,
-                                       bool clamp, bool symmetric)
+                                       bool clamp, bool symmetric,
+                                       Tensor subset_int)
 {
   CHECK_INPUT(a);
   auto r = rand_like(a);
   auto a_array = a.data_ptr<float>();
+  int* s_array = nullptr;
+  int n = subset_int.numel();
+  if (n > 0)
+  {
+    s_array = subset_int.data_ptr<int>();
+  }
   auto r_array = r.data_ptr<float>();
   Tensor o = zeros_like(a);
   auto o_array = o.data_ptr<float>();
@@ -168,7 +175,7 @@ Tensor fixed_point_quantize_stochastic(Tensor a,
   fixed_min_max(wl, fl, symmetric, &t_min, &t_max);
   for (int64_t i = 0; i < size; i++)
   {
-    o_array[i] = round(a_array[i], r_array[i], sigma);
+    o_array[i] = round(a_array[i], r_array[i], sigma, s_array, n);
     if (clamp)
     {
       o_array[i] = clamp_helper(o_array[i], t_min, t_max);
@@ -179,10 +186,17 @@ Tensor fixed_point_quantize_stochastic(Tensor a,
 
 Tensor fixed_point_quantize_nearest(Tensor a,
                                     int wl, int fl,
-                                    bool clamp, bool symmetric)
+                                    bool clamp, bool symmetric,
+                                    Tensor subset_int)
 {
   CHECK_INPUT(a);
   auto a_array = a.data_ptr<float>();
+  int* s_array = nullptr;
+  int n = subset_int.numel();
+  if (n > 0)
+  {
+    s_array = subset_int.data_ptr<int>();
+  }
   Tensor o = zeros_like(a);
   auto o_array = o.data_ptr<float>();
   int64_t size = a.numel();
@@ -191,7 +205,7 @@ Tensor fixed_point_quantize_nearest(Tensor a,
   fixed_min_max(wl, fl, symmetric, &t_min, &t_max);
   for (int64_t i = 0; i < size; i++)
   {
-    o_array[i] = round(a_array[i], 0.5, sigma);
+    o_array[i] = nearest_round(a_array[i], sigma, s_array, n);
     if (clamp)
     {
       o_array[i] = clamp_helper(o_array[i], t_min, t_max);

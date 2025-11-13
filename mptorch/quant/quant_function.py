@@ -2917,6 +2917,7 @@ def fixed_point_quantize(
     clamp: bool = True,
     symmetric: bool = False,
     rounding: Literal["nearest", "stochastic"] = "stochastic",
+    subset_fxp: torch.Tensor = torch.empty(0),
 ) -> torch.Tensor:
     """
     Quantize a single precision floating-point tensor into a low-precision fixed-point tensor
@@ -2928,6 +2929,7 @@ def fixed_point_quantize(
         clamp: clamp input numbers into representable range. If false, the quantization will only simulate the effect on precision
         symmetric: discard the minimum representable number to make the representable range symmetric
         rounding: rounding mode, \"stochastic\" or \"nearest\" (default: \"stochastic\")
+        subset_fxp: subset of fxp numbers to round towards
 
     Returns:
         a quantized fixed-point representation of the input tensor
@@ -2938,11 +2940,11 @@ def fixed_point_quantize(
     quant_module = get_module(x)
     if rounding == "nearest":
         out = quant_module.fixed_point_quantize_nearest(
-            x.contiguous(), wl, fl, clamp, symmetric
+            x.contiguous(), wl, fl, clamp, symmetric, subset_fxp
         )
     elif rounding == "stochastic":
         out = quant_module.fixed_point_quantize_stochastic(
-            x.contiguous(), wl, fl, clamp, symmetric
+            x.contiguous(), wl, fl, clamp, symmetric, subset_fxp
         )
     return out
 

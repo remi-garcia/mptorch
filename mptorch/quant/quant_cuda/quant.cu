@@ -252,10 +252,17 @@ void fixed_min_max(int wl, int fl, bool symmetric, float *t_min, float *t_max)
 
 Tensor fixed_point_quantize_stochastic_cuda(Tensor a,
                                             int wl, int fl,
-                                            bool use_clamp, bool symmetric)
+                                            bool use_clamp, bool symmetric,
+                                            Tensor subset_int)
 {
   // use external random number right now
   auto o = at::zeros_like(a);
+  int* s_array = nullptr;
+  int n = subset_int.numel();
+  if (n > 0)
+  {
+    s_array = subset_int.data_ptr<int>();
+  }
   auto rand_probs = rand_like(a);
   int64_t size = a.numel();
   int sigma = -fl;
@@ -266,16 +273,23 @@ Tensor fixed_point_quantize_stochastic_cuda(Tensor a,
 
   fixed_point_quantize_kernel_stochastic<<<blockNums, blockSize>>>(
       a.data_ptr<float>(), rand_probs.data_ptr<float>(), o.data_ptr<float>(),
-      size, sigma, use_clamp, t_min, t_max);
+      size, sigma, use_clamp, t_min, t_max, s_array, n);
   return o;
 }
 
 Tensor fixed_point_quantize_nearest_cuda(Tensor a,
                                          int wl, int fl,
-                                         bool use_clamp, bool symmetric)
+                                         bool use_clamp, bool symmetric,
+                                         Tensor subset_int)
 {
   // use external random number right now
   auto o = at::zeros_like(a);
+  int* s_array = nullptr;
+  int n = subset_int.numel();
+  if (n > 0)
+  {
+    s_array = subset_int.data_ptr<int>();
+  }
   int64_t size = a.numel();
   int sigma = -fl;
   float t_min, t_max;
@@ -285,7 +299,7 @@ Tensor fixed_point_quantize_nearest_cuda(Tensor a,
 
   fixed_point_quantize_kernel_nearest<<<blockNums, blockSize>>>(
       a.data_ptr<float>(), o.data_ptr<float>(), size, sigma, use_clamp, t_min,
-      t_max);
+      t_max, s_array, n);
   return o;
 }
 

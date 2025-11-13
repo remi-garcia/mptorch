@@ -23,7 +23,11 @@ struct DimSizes
 DimSizes partition_tensor(Tensor input, std::vector<int> &dims);
 DimSizes partition_tensor(Tensor a, int dim);
 
+float round(float a, int sigma);
 float round(float a, float r, int sigma);
+float round(float a, float r, int sigma, int *subset_int, int n);
+float nearest_round(float a, int sigma);
+float nearest_round(float a, int sigma, int *subset_int, int n);
 
 void fixed_min_max(int wl, int fl, bool symmetric, float *t_min, float *t_max);
 
@@ -51,7 +55,8 @@ fixed_point_quantize_nearest_mask(Tensor a,
  **/
 Tensor fixed_point_quantize_stochastic(Tensor a,
                                        int wl, int fl,
-                                       bool clamp, bool symmetric);
+                                       bool clamp, bool symmetric,
+                                       Tensor subset_int);
 
 /**
  * quantize a FloatTensor into fixed point number with word length [wl]
@@ -61,7 +66,8 @@ Tensor fixed_point_quantize_stochastic(Tensor a,
  **/
 Tensor fixed_point_quantize_nearest(Tensor a,
                                     int wl, int fl,
-                                    bool clamp, bool symmetric);
+                                    bool clamp, bool symmetric,
+                                    Tensor subset_int);
 
 /**
  * quantize a FloatTensor into fixed point number with word length [wl]
